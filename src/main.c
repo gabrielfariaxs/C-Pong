@@ -23,3 +23,4 @@ int main() {
     printf("Fim de jogo!\n");
     return 0;
 }
+// teste
