@@ -5,8 +5,9 @@
 #include "function.h"
 #include "keyboard.h"
 
-int posBarraEsquerda = 10;
-int posBarraDireita = 10;
+// usar as variáveis globais definidas em `src/globals.c`
+extern int barraEsquerda;
+extern int barraDireita;
 
 void mostrarMenu();
 void exibirAjuda();
@@ -16,10 +17,12 @@ int main() {
     int opcao;
     int estaJogando = 0;
 
-    keyboardInit();
+    // teclado será inicializado somente ao iniciar o jogo
 
     while (1) {
-        LimparTela();
+        /* quando mostrar o menu, limpar completamente para evitar
+           que o último frame do jogo fique por baixo do texto */
+        LimparTelaCompleta();
         mostrarMenu();
 
         printf("Escolha uma opcao: ");
@@ -28,19 +31,31 @@ int main() {
         switch (opcao) {
             case 1: // Iniciar jogo
                 estaJogando = 1;
+                /* Limpa completamente a tela para remover o menu
+                   (evita que linhas como "2 - Ajuda" fiquem visíveis
+                   durante o jogo). */
+                LimparTelaCompleta();
+                keyboardInit();
 
                 while (estaJogando) {
                     if (keyhit()) {
                         char tecla = readch();
-                        if (tecla == 'w' && posBarraEsquerda > 3) posBarraEsquerda--;
-                        else if (tecla == 's' && posBarraEsquerda < altura - 4) posBarraEsquerda++;
-                        else if (tecla == 'i' && posBarraDireita > 0) posBarraDireita--;
-                        else if (tecla == 'k' && posBarraDireita < altura - 4) posBarraDireita++;
+                        /* sair do jogo pressionando 'q' */
+                        if (tecla == 'q' || tecla == 'Q') {
+                            estaJogando = 0;
+                            break;
+                        }
+                        /* mover em passos de 2 para sensação de resposta mais rápida */
+                        if (tecla == 'w' && barraEsquerda > 3) barraEsquerda -= 2;
+                        else if (tecla == 's' && barraEsquerda < altura - 4) barraEsquerda += 2;
+                        else if (tecla == 'i' && barraDireita > 0) barraDireita -= 2;
+                        else if (tecla == 'k' && barraDireita < altura - 4) barraDireita += 2;
                     }
                     Tela();
-                    Tempo();
                     AtualizarBola();
                 }
+
+                keyboardDestroy();
                 break;
 
             case 2: // Ajuda
@@ -52,7 +67,6 @@ int main() {
                 break;
 
             case 4: // Sair
-                keyboardDestroy();
                 exit(0);
 
             default:
@@ -62,7 +76,6 @@ int main() {
         }
     }
 
-    keyboardDestroy();
     return 0;
 }
 
@@ -75,12 +88,11 @@ void mostrarMenu() {
 }
 
 void exibirAjuda() {
-    LimparTela();
+    LimparTelaCompleta();
     printf("Controles:\n\n");
     printf("Jogador 1: W - Cima | S - Baixo\n");
     printf("Jogador 2: I - Cima | K - Baixo\n\n");
-    printf("Eventos:\nA cada 30 segundos, eventos especiais podem acontecer:\n");
-    printf("- Bola dupla\n- Pontos duplicados\n- Velocidade dobrada\n\n");
+    /* eventos removidos do jogo */
     printf("Pressione Enter para voltar ao menu.\n");
 
     keyboardInit();
@@ -91,7 +103,7 @@ void exibirAjuda() {
 }
 
 void mostrarHistorico() {
-    LimparTela();
+    LimparTelaCompleta();
     printf("==== Historico de Pontuacao ====\n\n");
     PrintArquivo();
     printf("\nPressione Enter para voltar ao menu.\n");

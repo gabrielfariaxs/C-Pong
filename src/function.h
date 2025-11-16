@@ -28,6 +28,7 @@ void AdicionarPonto(int p1, int p2);
 void LiberarPonto();
 void AtualizarBola();
 void LimparTela();
+void LimparTelaCompleta();
 void Tempo();
 void PrintSd();
 #endif

@@ -1,6 +1,7 @@
 #include "function.h"
 #include "keyboard.h"
 #include <stdio.h>
+#include <string.h>
 #include <stdlib.h>
 #include <time.h>
 
@@ -13,17 +14,14 @@ int bolaX = 5;
 int bolaY = 5;
 int velocidadeX = 1;
 int velocidadeY = 1;
-int seg = 30;
-int mim = 1;
-int temp = 0;
+int barraEsquerda = 10;
+int barraDireita = 10;
 int pass = 0;
-int x = 0, val = 1;
 struct pontuacao player;
 struct pontuacao *head = NULL;
 
 void Tela() {
   LimparTela();
-  randomizar();
   PrintSd();
   for (int i = 0; i < altura; i++) {
       for (int j = 0; j < largura; j++) {
@@ -45,14 +43,8 @@ void Tela() {
       }
       printf("\n");
   }
-  PrintarEvento(x);
-
-  if(x == 1){
-    usleep(50000);
-  }
-  else{
-    usleep(75000);
-  }
+  /* diminuir o tempo de espera entre frames para respostas mais rápidas */
+  usleep(40000); /* ~40ms */
 }
 
 void AdicionarPonto(int p1, int p2) {
@@ -108,107 +100,104 @@ void AtualizarBola() {
   bolaX += velocidadeX;
   bolaY += velocidadeY;
 
-  if (bolaX <= 0) {
-    player.player2 += 1 * val;
-    velocidadeX = -velocidadeX;
-  }
-
-  if (bolaX >= largura - 1) {
-    player.player1 += 1 * val;
-    velocidadeX = -velocidadeX;
-  }
-
-  if (bolaY <= 0 || bolaY >= altura - 1) {
+  /* bounce top/bottom */
+  if (bolaY <= 0) {
+    bolaY = 0;
+    velocidadeY = -velocidadeY;
+  } else if (bolaY >= altura - 1) {
+    bolaY = altura - 1;
     velocidadeY = -velocidadeY;
   }
 
-  if (bolaX == 2) {
+  /* paddle collisions: check when ball reaches or passes the paddle column
+     and the Y is inside the paddle range. Reposiciona a bola fora da
+     barra para evitar que ela atravesse quando a velocidade for > 1. */
+  if (velocidadeX < 0 && bolaX <= 2) {
     if (bolaY >= barraEsquerda - 2 && bolaY <= barraEsquerda + 2) {
+      bolaX = 3; /* coloca 1 posição à direita da barra */
       velocidadeX = -velocidadeX;
     }
   }
 
-  if (bolaX == largura - 3 &&
-      (bolaY >= barraDireita - 2 && bolaY <= barraDireita + 2)) {
+  if (velocidadeX > 0 && bolaX >= largura - 3) {
+    if (bolaY >= barraDireita - 2 && bolaY <= barraDireita + 2) {
+      bolaX = largura - 4; /* coloca 1 posição à esquerda da barra */
+      velocidadeX = -velocidadeX;
+    }
+  }
+
+  /* scoring: mantém comportamento anterior quando bola sai totalmente pela borda */
+  if (bolaX <= 0) {
+    player.player2 += 1;
     velocidadeX = -velocidadeX;
+    /* verificar condição de vitória */
+    if (player.player2 >= 15) {
+      LimparTelaCompleta();
+      printf("\n\n\t\tJogador 2 venceu! %d x %d\n", player.player1, player.player2);
+      AdicionarPonto(player.player1, player.player2);
+      EscreverArquivo();
+      LiberarPonto();
+      keyboardDestroy();
+      exit(0);
+    }
+  }
+
+  if (bolaX >= largura - 1) {
+    player.player1 += 1;
+    velocidadeX = -velocidadeX;
+    /* verificar condição de vitória */
+    if (player.player1 >= 15) {
+      LimparTelaCompleta();
+      printf("\n\n\t\tJogador 1 venceu! %d x %d\n", player.player1, player.player2);
+      AdicionarPonto(player.player1, player.player2);
+      EscreverArquivo();
+      LiberarPonto();
+      keyboardDestroy();
+      exit(0);
+    }
   }
 }
 
-void LimparTela() { system("clear"); }
+void LimparTela() {
+  /* Não limpar toda a tela: apenas reposiciona o cursor no início.
+     Isso reduz o "piscamento" da borda ao redesenhar o frame.
+  */
+  printf("\x1b[H");
+  fflush(stdout);
+}
+
+/* Limpa completamente a tela (usa em menus/ajuda/historico) */
+void LimparTelaCompleta() {
+  printf("\x1b[2J\x1b[H");
+  fflush(stdout);
+}
 
 void Tempo() {
-
-  temp++;
-
-  if (temp % 10 == 0) {
-    seg--;
-  }
-
-  if (mim == 0 && seg == 0) {
-    printf("O tempo acabou!\n");
-    printf("Player 1: %d | Player 2: %d\n", player.player1, player.player2);
-    AdicionarPonto(player.player1, player.player2);
-    EscreverArquivo();
-    LiberarPonto();
-    keyboardDestroy();
-    exit(1);
-  }
-
-  if (seg == 0) {
-    mim--;
-    seg = seg + 60;
-  }
+  /* cronômetro removido */
 }
 
-void remover(int x) {
-  if (x == 1) {
-    x = 0;
-  }
-  if (x == 3) {
-    val = 1;
-    x = 0;
-  }
-}
+/* eventos removidos */
+void remover(int x) { (void)x; }
 
-void randomizar(){
-    srand(time(NULL));
-    if (temp == 300) {
-      x = 1 + rand() % 2; // gera só 1 ou 3, pois o 2 foi removido
-      printf("%d", x);
-      if (x == 1) {
-        x = 1;
-      }
-      else if (x == 3) {
-        val = 2;
-      }
-    }
+void randomizar() { /* eventos desativados */ }
 
-    if (temp == 600) {
-      remover(x);
-      x = 1 + rand() % 2; // só 1 ou 3
-      printf("%d", x);
-      if (x == 1) {
-        x = 1;
-      }
-      else if (x == 3) {
-        val = 2;
-      }
-    }
-}
-
-void PrintarEvento(int x){
-  if(x == 1){
-    printf("\n\t\t%sVelocidade em 2X, Cuidado!%s\n\n", COR_AMARELO, COR_RESET);
-  }
-  if(x == 3){
-    printf("\n\t\t%sPontuação duplicada, essa é a hora de virar!%s\n\n", COR_AMARELO, COR_RESET);
-  }
-}
+void PrintarEvento(int x) { (void)x; }
 
 void PrintSd(){
-  printf("%s\n\t\t\t\t\t %02d:%02d\n\n%s", COR_AMARELO, mim, seg, COR_RESET);
-  for (int i = 0; i < 23; i++) {
-    printf(" ");
-  }
+  /* Exibe os rótulos dos jogadores acima do campo, fora da borda magenta */
+  const char leftLabel[] = "Player 1 (Esq)";
+  const char rightLabel[] = "Player 2 (Dir)";
+  int leftLen = (int)strlen(leftLabel);
+  int rightLen = (int)strlen(rightLabel);
+  int pad = largura - leftLen - rightLen;
+  if (pad < 1) pad = 1;
+
+  printf("%s%s%s", COR_AMARELO, leftLabel, COR_RESET);
+  for (int i = 0; i < pad; i++) printf(" ");
+  printf("%s%s%s\n", COR_AMARELO, rightLabel, COR_RESET);
+
+  /* segunda linha: placar centralizado abaixo dos rótulos */
+  int scorePad = (largura - 6) / 2; /* espaço antes do "X | Y" aproximado */
+  for (int i = 0; i < scorePad; i++) printf(" ");
   printf("%s%d | %d\n\n%s", COR_AMARELO, player.player1, player.player2, COR_RESET);
 }

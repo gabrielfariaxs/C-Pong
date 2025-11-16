@@ -7,11 +7,12 @@
 
 #include <termios.h>
 #include <unistd.h>
+#include <stdio.h>
 
 #include "keyboard.h"
 
 static struct termios initialSettings, newSettings;
-static int peekCharacter;
+static int peekCharacter = -1;
 
 
 void keyboardInit()
@@ -29,6 +30,9 @@ void keyboardInit()
 void keyboardDestroy()
 {
     tcsetattr(0, TCSANOW, &initialSettings);
+    /* Mostrar cursor novamente ao encerrar o modo raw */
+    printf("\x1b[?25h");
+    fflush(stdout);
 }
 
 int keyhit()
