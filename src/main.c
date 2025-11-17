@@ -20,8 +20,6 @@ int main() {
     // teclado será inicializado somente ao iniciar o jogo
 
     while (1) {
-        /* quando mostrar o menu, limpar completamente para evitar
-           que o último frame do jogo fique por baixo do texto */
         LimparTelaCompleta();
         mostrarMenu();
 
@@ -31,9 +29,6 @@ int main() {
         switch (opcao) {
             case 1: // Iniciar jogo
                 estaJogando = 1;
-                /* Limpa completamente a tela para remover o menu
-                   (evita que linhas como "2 - Ajuda" fiquem visíveis
-                   durante o jogo). */
                 LimparTelaCompleta();
                 keyboardInit();
 
@@ -92,7 +87,7 @@ void exibirAjuda() {
     printf("Controles:\n\n");
     printf("Jogador 1: W - Cima | S - Baixo\n");
     printf("Jogador 2: I - Cima | K - Baixo\n\n");
-    /* eventos removidos do jogo */
+    printf("Pressione 'Q' a qualquer momento para sair do jogo.\n\n");
     printf("Pressione Enter para voltar ao menu.\n");
 
     keyboardInit();
