@@ -5,49 +5,46 @@
 #include "function.h"
 #include "keyboard.h"
 
-// usar as variáveis globais definidas em `src/globals.c`
-extern int barraEsquerda;
-extern int barraDireita;
+// Variáveis globais definidas em outro arquivo
+extern int raqueteEsquerda;
+extern int raqueteDireita;
 
-void mostrarMenu();
+void exibirMenu();
 void exibirAjuda();
-void mostrarHistorico();
+void exibirHistorico();
 
 int main() {
-    int opcao;
-    int estaJogando = 0;
-
-    // teclado será inicializado somente ao iniciar o jogo
+    int escolha;
+    int jogando = 0;
 
     while (1) {
         LimparTelaCompleta();
-        mostrarMenu();
+        exibirMenu();
 
         printf("Escolha uma opcao: ");
-        scanf("%d", &opcao);
+        scanf("%d", &escolha);
 
-        switch (opcao) {
+        switch (escolha) {
             case 1: // Iniciar jogo
-                estaJogando = 1;
+                jogando = 1;
                 LimparTelaCompleta();
                 keyboardInit();
 
-                while (estaJogando) {
+                while (jogando) {
                     if (keyhit()) {
                         char tecla = readch();
-                        /* sair do jogo pressionando 'q' */
                         if (tecla == 'q' || tecla == 'Q') {
-                            estaJogando = 0;
+                            jogando = 0;
                             break;
                         }
-                        /* mover em passos de 2 para sensação de resposta mais rápida */
-                        if (tecla == 'w' && barraEsquerda > 3) barraEsquerda -= 2;
-                        else if (tecla == 's' && barraEsquerda < altura - 4) barraEsquerda += 2;
-                        else if (tecla == 'i' && barraDireita > 0) barraDireita -= 2;
-                        else if (tecla == 'k' && barraDireita < altura - 4) barraDireita += 2;
+                        // Controles para ambas as raquetes com os novos nomes das variáveis
+                        if (tecla == 'w' && raqueteEsquerda > 3) raqueteEsquerda -= 2;
+                        else if (tecla == 's' && raqueteEsquerda < altura - 4) raqueteEsquerda += 2;
+                        else if (tecla == 'i' && raqueteDireita > 0) raqueteDireita -= 2;
+                        else if (tecla == 'k' && raqueteDireita < altura - 4) raqueteDireita += 2;
                     }
-                    Tela();
-                    AtualizarBola();
+                    MostraJogo();
+                    MoverBola();
                 }
 
                 keyboardDestroy();
@@ -58,10 +55,10 @@ int main() {
                 break;
 
             case 3: // Histórico de Pontuação
-                mostrarHistorico();
+                exibirHistorico();
                 break;
 
-            case 4: // Sair
+            case 4:
                 exit(0);
 
             default:
@@ -70,11 +67,10 @@ int main() {
                 break;
         }
     }
-
     return 0;
 }
 
-void mostrarMenu() {
+void exibirMenu() {
     printf("=== Menu Principal ===\n");
     printf("1 - Jogar\n");
     printf("2 - Ajuda\n");
@@ -97,10 +93,10 @@ void exibirAjuda() {
     keyboardDestroy();
 }
 
-void mostrarHistorico() {
+void exibirHistorico() {
     LimparTelaCompleta();
     printf("==== Historico de Pontuacao ====\n\n");
-    PrintArquivo();
+    MostrarArquivo();
     printf("\nPressione Enter para voltar ao menu.\n");
 
     keyboardInit();
