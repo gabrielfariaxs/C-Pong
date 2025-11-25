@@ -40,3 +40,7 @@ wsl bash -lc "cd /mnt/c/Users/<seu_usuario>/C-Pong && gcc -o pong src/*.c -I. -l
 - Se quiser um executável nativo do Windows, será necessário portar o input/console (substituir `termios`) ou usar Cygwin/MinGW.
 
 Divirta-se!
+
+
+https://github.com/user-attachments/assets/d880b51c-8cf0-4870-9942-d91c9082f0dc
+
